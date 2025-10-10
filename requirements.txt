@@ -1,0 +1,16 @@
+# Simple SQL Client Library Requirements
+# Core dependencies (minimal for basic functionality)
+
+# No external dependencies required - uses only Python standard library
+# SQLite3 is included with Python 3.7+
+
+# Development dependencies (install with: pip install -e .[dev])
+# pytest>=6.0.0
+# pytest-cov>=2.0.0
+# black>=21.0.0
+# flake8>=3.8.0
+# mypy>=0.800
+
+# Documentation dependencies (install with: pip install -e .[docs])
+# sphinx>=3.0.0
+# sphinx-rtd-theme>=0.5.0
