@@ -1,25 +1,31 @@
 """
-Custom exceptions for the SQL Client Library
+Custom exceptions for the SQLL
 
 This module defines all custom exceptions used throughout the library,
 providing clear error messages and proper exception hierarchy.
 """
 
 from typing import Optional, Any
+from enum import Enum
+
+class ErrorCodes(Enum):
+    connection_error = "connection_error"
+    transaction_error = "transaction_error"
+    query_error = "query_error"
+    validation_error = "validation_error"
+    migration_error = "migration_error"
+    configuration_error ="configuration_error"
 
 
-class SQLClientError(Exception):
+class SQLLError(Exception):
     """
-    Base exception class for all SQL Client errors
-    
-    This is the root exception class that all other custom exceptions
+    Base exception class for all SQLL errors
+
+    Root exception class that all other custom exceptions
     inherit from, allowing for easy exception handling at the library level.
     """
-    
-    def __init__(self, message: str, error_code: Optional[str] = None, details: Optional[Any] = None):
+    def __init__(self, message: str, error_code: ErrorCodes | None = None, details: Optional[Any] = None):
         """
-        Initialize the base SQL Client error
-        
         Args:
             message: Human-readable error message
             error_code: Optional error code for programmatic handling
@@ -29,142 +35,122 @@ class SQLClientError(Exception):
         self.message = message
         self.error_code = error_code
         self.details = details
-    
+
     def __str__(self) -> str:
-        """Return formatted error message"""
         if self.error_code:
-            return f"[{self.error_code}] {self.message}"
+            return f"[{self.error_code}]: {self.message}"
         return self.message
 
 
-class ConnectionError(SQLClientError):
+class ConnectionError(SQLLError):
     """
     Raised when database connection operations fail
-    
-    This exception is raised when there are issues establishing,
-    maintaining, or closing database connections.
+
+    When there are issues establishing, maintaining, or closing database connections.
     """
-    
+
     def __init__(self, message: str, db_path: Optional[str] = None, details: Optional[Any] = None):
         """
-        Initialize connection error
-        
         Args:
             message: Error message
             db_path: Database path that caused the error
             details: Additional error details
         """
-        super().__init__(message, "CONNECTION_ERROR", details)
+        super().__init__(details, message=message, error_code=ErrorCodes.connection_error)
         self.db_path = db_path
 
 
-class QueryError(SQLClientError):
+class QueryError(SQLLError):
     """
     Raised when SQL query execution fails
-    
-    This exception is raised when there are syntax errors, constraint
-    violations, or other issues with SQL query execution.
+
+    When there are syntax errors, constraint violations, or other issues with SQL query execution.
     """
-    
     def __init__(self, message: str, sql: Optional[str] = None, params: Optional[tuple] = None, details: Optional[Any] = None):
         """
-        Initialize query error
-        
         Args:
             message: Error message
             sql: SQL query that caused the error
             params: Parameters used with the query
             details: Additional error details
         """
-        super().__init__(message, "QUERY_ERROR", details)
+        super().__init__(details, message=message, error_code=ErrorCodes.query_error)
         self.sql = sql
         self.params = params
 
 
-class TransactionError(SQLClientError):
+class TransactionError(SQLLError):
     """
     Raised when transaction operations fail
-    
-    This exception is raised when there are issues with transaction
+
+    When there are issues with transaction
     management, such as rollback failures or nested transaction problems.
     """
-    
     def __init__(self, message: str, operation: Optional[str] = None, details: Optional[Any] = None):
         """
-        Initialize transaction error
-        
         Args:
             message: Error message
             operation: Transaction operation that failed
             details: Additional error details
         """
-        super().__init__(message, "TRANSACTION_ERROR", details)
+        super().__init__(details, message=message, error_code=ErrorCodes.transaction_error)
         self.operation = operation
 
 
-class ValidationError(SQLClientError):
+class ValidationError(SQLLError):
     """
     Raised when input validation fails
-    
-    This exception is raised when provided data doesn't meet
+
+    When provided data doesn't meet
     the expected format or constraints.
     """
-    
     def __init__(self, message: str, field: Optional[str] = None, value: Optional[Any] = None, details: Optional[Any] = None):
         """
-        Initialize validation error
-        
         Args:
             message: Error message
             field: Field that failed validation
             value: Value that failed validation
             details: Additional error details
         """
-        super().__init__(message, "VALIDATION_ERROR", details)
+        super().__init__(details, message=message, error_code=ErrorCodes.validation_error)
         self.field = field
         self.value = value
 
 
-class ConfigurationError(SQLClientError):
+class ConfigurationError(SQLLError):
     """
     Raised when library configuration is invalid
-    
     This exception is raised when there are issues with library
     configuration, such as invalid connection parameters.
     """
-    
     def __init__(self, message: str, config_key: Optional[str] = None, details: Optional[Any] = None):
         """
         Initialize configuration error
-        
         Args:
             message: Error message
             config_key: Configuration key that caused the error
             details: Additional error details
         """
-        super().__init__(message, "CONFIGURATION_ERROR", details)
+        super().__init__(details, error_code=ErrorCodes.configuration_error, message=message)
         self.config_key = config_key
 
 
-class MigrationError(SQLClientError):
+class MigrationError(SQLLError):
     """
     Raised when database migration operations fail
-    
-    This exception is raised when there are issues with database
+
+    When there are issues with database
     schema migrations or version management.
     """
-    
     def __init__(self, message: str, migration_name: Optional[str] = None, version: Optional[str] = None, details: Optional[Any] = None):
         """
-        Initialize migration error
-        
         Args:
             message: Error message
             migration_name: Name of the migration that failed
             version: Database version when error occurred
             details: Additional error details
         """
-        super().__init__(message, "MIGRATION_ERROR", details)
+        super().__init__(details, error_code=ErrorCodes.migration_error, message=message)
         self.migration_name = migration_name
         self.version = version
 
@@ -173,8 +159,7 @@ class MigrationError(SQLClientError):
 
 def raise_connection_error(db_path: str, original_error: Exception) -> None:
     """
-    Raise a ConnectionError with details from the original error
-    
+    ConnectionError with details from the original error
     Args:
         db_path: Database path that caused the error
         original_error: Original exception that occurred
@@ -188,8 +173,7 @@ def raise_connection_error(db_path: str, original_error: Exception) -> None:
 
 def raise_query_error(sql: str, params: Optional[tuple], original_error: Exception) -> None:
     """
-    Raise a QueryError with details from the original error
-    
+    QueryError with details from the original error
     Args:
         sql: SQL query that caused the error
         params: Parameters used with the query
@@ -205,8 +189,7 @@ def raise_query_error(sql: str, params: Optional[tuple], original_error: Excepti
 
 def raise_validation_error(field: str, value: Any, message: str) -> None:
     """
-    Raise a ValidationError with field and value details
-    
+    ValidationError with field and value details
     Args:
         field: Field that failed validation
         value: Value that failed validation

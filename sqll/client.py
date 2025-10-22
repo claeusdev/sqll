@@ -1,22 +1,14 @@
-"""
-Main SQL Client class for the SQL Client Library
-
-This module provides the main SQLClient class that serves as the primary
-interface for database operations with SQLite.
-"""
 
 import sqlite3
 import logging
-import json
 from typing import Any, Dict, List, Optional, Tuple, Union, ContextManager
 from contextlib import contextmanager
-from datetime import datetime, date
 from dataclasses import dataclass
 
 from .connection import ConnectionManager, SimpleConnectionManager, ConnectionConfig
 from .query_builder import QueryBuilder, select_from, count_from
 from .exceptions import (
-    SQLClientError, ConnectionError, QueryError, TransactionError,
+    SQLLError, ConnectionError, QueryError, TransactionError,
     ValidationError, raise_query_error, raise_validation_error
 )
 
@@ -40,25 +32,22 @@ class ClientConfig:
     log_level: int = logging.INFO
 
 
-class SQLClient:
+class SQLL:
     """
     Main SQL Client class for database operations
-    
+
     This class provides a clean, intuitive interface for SQLite database
     operations with support for both raw SQL and query builder patterns.
     """
-    
     def __init__(self, db_path: str, **kwargs):
         """
-        Initialize the SQL Client
-        
         Args:
             db_path: Path to SQLite database file
             **kwargs: Additional configuration options
         """
         self.config = ClientConfig(db_path=db_path, **kwargs)
         self.logger = self._setup_logging()
-        
+
         # Initialize connection manager
         if self.config.use_connection_pool:
             conn_config = ConnectionConfig(
@@ -76,16 +65,16 @@ class SQLClient:
             self.connection_manager = ConnectionManager(conn_config)
         else:
             self.connection_manager = SimpleConnectionManager(db_path, **kwargs)
-        
-        self.logger.info(f"SQLClient initialized for database: {db_path}")
-    
+
+        self.logger.info(f"SQLLClient initialized for database: {db_path}")
+
     def _setup_logging(self) -> logging.Logger:
         """Setup logging for the client"""
         logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
-        
+
         if self.config.enable_logging:
             logger.setLevel(self.config.log_level)
-            
+
             if not logger.handlers:
                 handler = logging.StreamHandler()
                 formatter = logging.Formatter(
@@ -93,20 +82,19 @@ class SQLClient:
                 )
                 handler.setFormatter(formatter)
                 logger.addHandler(handler)
-        
         return logger
-    
+
     def execute(self, sql: str, params: Optional[Tuple[Any, ...]] = None) -> sqlite3.Cursor:
         """
         Execute raw SQL query
-        
+
         Args:
             sql: SQL query string
             params: Optional parameters for the query
-            
+
         Returns:
             SQLite cursor object
-            
+
         Raises:
             QueryError: If query execution fails
         """
@@ -115,28 +103,26 @@ class SQLClient:
                 self.logger.debug(f"Executing SQL: {sql}")
                 if params:
                     self.logger.debug(f"Parameters: {params}")
-                
                 cursor = conn.execute(sql, params or ())
                 conn.commit()
-                
                 self.logger.debug(f"Query executed successfully, affected rows: {cursor.rowcount}")
+
                 return cursor
-                
         except sqlite3.Error as e:
             self.logger.error(f"Query execution failed: {e}")
             raise_query_error(sql, params, e)
         except Exception as e:
             self.logger.error(f"Unexpected error during query execution: {e}")
             raise_query_error(sql, params, e)
-    
+
     def execute_many(self, sql: str, params_list: List[Tuple[Any, ...]]) -> sqlite3.Cursor:
         """
         Execute SQL query multiple times with different parameters
-        
+
         Args:
             sql: SQL query string
             params_list: List of parameter tuples
-            
+
         Returns:
             SQLite cursor object
         """
@@ -144,10 +130,8 @@ class SQLClient:
             with self.connection_manager.get_connection_context() as conn:
                 self.logger.debug(f"Executing SQL many times: {sql}")
                 self.logger.debug(f"Parameter sets: {len(params_list)}")
-                
                 cursor = conn.executemany(sql, params_list)
                 conn.commit()
-                
                 self.logger.debug(f"Batch query executed successfully, affected rows: {cursor.rowcount}")
                 return cursor
                 

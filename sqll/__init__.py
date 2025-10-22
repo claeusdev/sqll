@@ -1,11 +1,11 @@
 """
-Simple SQL Client Library
+SQL Client Library for SQLite
 
-A clean, intuitive SQL client library for Python with SQLite support.
+A simple SQL client library for Python with SQLite support.
 Provides a simple interface for database operations while maintaining
 the flexibility and power of raw SQL.
 
-Author: Python SQL Guide
+Author: Nana Adjei Manu
 Version: 1.0.0
 """
 
@@ -21,11 +21,11 @@ from .exceptions import (
 )
 
 __version__ = "1.0.0"
-__author__ = "Python SQL Guide"
+__author__ = "Nana Adjei Manu"
 
 __all__ = [
     'SQLClient',
-    'ConnectionManager', 
+    'ConnectionManager',
     'QueryBuilder',
     'SQLClientError',
     'ConnectionError',
