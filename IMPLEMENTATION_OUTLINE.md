@@ -8,42 +8,54 @@ This document provides a step-by-step guide for implementing all critical bug fi
 
 ## Phase 1: Critical Bug Fixes (MUST DO FIRST)
 
-### Task 1.1: Fix Class Naming Inconsistency
+### Task 1.1: Fix Class Import Inconsistency
 
-**Problem**: Class is named `SQLL` in `client.py` but imported as `SQLClient` everywhere else.
+**Problem**: Class is correctly named `SQLL` in `client.py` but `__init__.py` tries to import `SQLClient` which doesn't exist.
 
 **Files to Modify**:
-1. `sqll/client.py`
-2. `sqll/__init__.py` (verify)
+1. `sqll/__init__.py`
+2. `examples/basic_usage.py`
+3. `examples/advanced_queries.py`
+4. `tests/test_client.py`
 
 **Detailed Steps**:
 
-#### Step 1.1.1: Rename Class in `sqll/client.py`
-- **File**: `sqll/client.py`
-- **Line**: 35
+#### Step 1.1.1: Fix Import in `__init__.py`
+- **File**: `sqll/__init__.py`
+- **Line**: 12
 - **Current Code**:
   ```python
-  class SQLL:
+  from .client import SQLClient
   ```
 - **Change To**:
   ```python
-  class SQLClient:
+  from .client import SQLL
   ```
-- **Reason**: Matches import expectations and library naming convention
-- **Impact**: All references to `SQLL` in this file become `SQLClient`
-- **Verification**: Search file for any remaining `SQLL` references (should be none)
+- **Reason**: Class is correctly named `SQLL`, need to import the actual class name
+- **Impact**: Import will work correctly
+- **Verification**: Import should work after fix
 
-#### Step 1.1.2: Update Logger Name (if needed)
-- **File**: `sqll/client.py`
-- **Line**: 73
+#### Step 1.1.2: Update Export in `__init__.py`
+- **File**: `sqll/__init__.py`
+- **Line**: 27
 - **Current Code**:
   ```python
-  logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
+  __all__ = [
+      'SQLClient',
+      ...
+  ]
   ```
-- **Change To**: No change needed (uses `__class__.__name__` which will auto-update)
-- **Verification**: Logger name should now show `SQLClient` instead of `SQLL`
+- **Change To**:
+  ```python
+  __all__ = [
+      'SQLL',
+      ...
+  ]
+  ```
+- **Reason**: Export the correct class name
+- **Verification**: Check `__all__` exports `SQLL`
 
-#### Step 1.1.3: Update Log Messages
+#### Step 1.1.3: Update Log Message in `client.py`
 - **File**: `sqll/client.py`
 - **Line**: 69
 - **Current Code**:
@@ -52,40 +64,71 @@ This document provides a step-by-step guide for implementing all critical bug fi
   ```
 - **Change To**:
   ```python
-  self.logger.info(f"SQLClient initialized for database: {db_path}")
+  self.logger.info(f"SQLL initialized for database: {db_path}")
   ```
-- **Verification**: Check all log messages reference correct class name
+- **Reason**: Fix typo in log message (remove extra "Client")
+- **Verification**: Log message should show "SQLL initialized"
 
-#### Step 1.1.4: Verify `__init__.py` Import
-- **File**: `sqll/__init__.py`
-- **Line**: 12
+#### Step 1.1.4: Update Examples to Use SQLL
+- **File**: `examples/basic_usage.py`
+- **Line**: 15
 - **Current Code**:
   ```python
-  from .client import SQLClient
+  from sqll import SQLClient, QueryBuilder
   ```
-- **Change To**: No change needed (already correct)
-- **Verification**: Import should work after class rename
+- **Change To**:
+  ```python
+  from sqll import SQLL, QueryBuilder
+  ```
+- **Action**: Replace all `SQLClient` with `SQLL` in this file
+
+#### Step 1.1.5: Update Examples to Use SQLL (Advanced)
+- **File**: `examples/advanced_queries.py`
+- **Line**: 15
+- **Current Code**:
+  ```python
+  from sqll import SQLClient, QueryBuilder
+  ```
+- **Change To**:
+  ```python
+  from sqll import SQLL, QueryBuilder
+  ```
+- **Action**: Replace all `SQLClient` with `SQLL` in this file
+
+#### Step 1.1.6: Update Tests to Use SQLL
+- **File**: `tests/test_client.py`
+- **Line**: 18
+- **Current Code**:
+  ```python
+  from sqll import SQLClient, QueryBuilder
+  ```
+- **Change To**:
+  ```python
+  from sqll import SQLL, QueryBuilder
+  ```
+- **Action**: Replace all `SQLClient` with `SQLL` in this file
 
 **Testing**:
 ```python
 # Test import
-from sqll import SQLClient
-client = SQLClient('test.db')
-assert client.__class__.__name__ == 'SQLClient'
+from sqll import SQLL
+client = SQLL('test.db')
+assert client.__class__.__name__ == 'SQLL'
 ```
 
 ---
 
 ### Task 1.2: Fix Exception Naming Inconsistency
 
-**Problem**: Exception class is `SQLLError` but imported as `SQLClientError`.
+**Problem**: Exception class is correctly named `SQLLError` but `__init__.py` tries to import `SQLClientError` which doesn't exist.
 
 **Files to Modify**:
 1. `sqll/__init__.py`
+2. `tests/test_client.py`
 
 **Detailed Steps**:
 
-#### Step 1.2.1: Add Exception Alias in `__init__.py`
+#### Step 1.2.1: Fix Exception Import in `__init__.py`
 - **File**: `sqll/__init__.py`
 - **Line**: 15-21 (in the import section)
 - **Current Code**:
@@ -101,7 +144,7 @@ assert client.__class__.__name__ == 'SQLClient'
 - **Change To**:
   ```python
   from .exceptions import (
-      SQLLError as SQLClientError,  # Alias for backward compatibility
+      SQLLError,
       ConnectionError,
       QueryError,
       TransactionError,
@@ -110,8 +153,8 @@ assert client.__class__.__name__ == 'SQLClient'
       MigrationError
   )
   ```
-- **Reason**: Keep `SQLLError` as internal name, expose as `SQLClientError` for consistency
-- **Impact**: All imports of `SQLClientError` will work correctly
+- **Reason**: Import the actual exception class name `SQLLError`
+- **Impact**: All imports of `SQLLError` will work correctly
 
 #### Step 1.2.2: Update `__all__` Export List
 - **File**: `sqll/__init__.py`
@@ -132,10 +175,10 @@ assert client.__class__.__name__ == 'SQLClient'
 - **Change To**:
   ```python
   __all__ = [
-      'SQLClient',
+      'SQLL',
       'ConnectionManager',
       'QueryBuilder',
-      'SQLClientError',  # Alias for SQLLError
+      'SQLLError',
       'ConnectionError',
       'QueryError',
       'TransactionError',
@@ -144,13 +187,30 @@ assert client.__class__.__name__ == 'SQLClient'
       'MigrationError'
   ]
   ```
-- **Reason**: Export all exception types for completeness
+- **Reason**: Export correct class and exception names
+
+#### Step 1.2.3: Update Test Imports
+- **File**: `tests/test_client.py`
+- **Line**: 19-21
+- **Current Code**:
+  ```python
+  from sqll.exceptions import (
+      SQLClientError, ConnectionError, QueryError, TransactionError, ValidationError
+  )
+  ```
+- **Change To**:
+  ```python
+  from sqll.exceptions import (
+      SQLLError, ConnectionError, QueryError, TransactionError, ValidationError
+  )
+  ```
+- **Action**: Replace `SQLClientError` with `SQLLError` throughout test file
 
 **Testing**:
 ```python
 # Test exception imports
-from sqll import SQLClientError, ConnectionError, QueryError
-assert SQLClientError.__name__ == 'SQLLError'  # Internal name
+from sqll import SQLLError, ConnectionError, QueryError
+assert SQLLError.__name__ == 'SQLLError'
 ```
 
 ---
@@ -276,7 +336,7 @@ assert SQLClientError.__name__ == 'SQLLError'  # Internal name
 **Testing**:
 ```python
 # Test each exception type
-from sqll import SQLClientError, ConnectionError, QueryError, ValidationError
+from sqll import SQLLError, ConnectionError, QueryError, ValidationError
 
 # Test ConnectionError
 try:
@@ -366,7 +426,14 @@ except ConnectionError as e:
       SQLClientError, ConnectionError, QueryError, TransactionError, ValidationError
   )
   ```
-- **Change To**: No change needed (imports should work after Phase 1 fixes)
+- **Change To**:
+  ```python
+  from sqll import SQLL, QueryBuilder
+  from sqll.exceptions import (
+      SQLLError, ConnectionError, QueryError, TransactionError, ValidationError
+  )
+  ```
+- **Action**: Replace all `SQLClient` with `SQLL` and `SQLClientError` with `SQLLError` throughout test file
 - **Verification**: Run tests to ensure they pass
 
 **Testing**:
@@ -470,8 +537,8 @@ grep -r "ConnectionState" sqll/
 **Testing**:
 ```python
 # Test both connection manager types
-client1 = SQLClient('test1.db', use_connection_pool=False)
-client2 = SQLClient('test2.db', use_connection_pool=True)
+client1 = SQLL('test1.db', use_connection_pool=False)
+client2 = SQLL('test2.db', use_connection_pool=True)
 assert isinstance(client1.connection_manager, SimpleConnectionManager)
 assert isinstance(client2.connection_manager, ConnectionManager)
 ```
@@ -496,7 +563,7 @@ assert isinstance(client2.connection_manager, ConnectionManager)
 ```python
 @dataclass
 class ClientConfig:
-    """Configuration for SQLClient"""
+    """Configuration for SQLL"""
     db_path: str
     timeout: float = 30.0  # SQLite connection timeout in seconds
     check_same_thread: bool = False  # Allow multi-threaded access
@@ -597,9 +664,9 @@ class ClientConfig:
 
 **Testing**:
 ```python
-from sqll import SQLClient, ValidationError
+from sqll import SQLL, ValidationError
 
-client = SQLClient('test.db')
+client = SQLL('test.db')
 
 # Test invalid table names
 try:
