@@ -15,8 +15,8 @@ from datetime import datetime
 import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from sqll import SQLClient, QueryBuilder
-from sqll.exceptions import (
+from sqll import (
+    SQLClient, QueryBuilder,
     SQLClientError, ConnectionError, QueryError, TransactionError, ValidationError
 )
 
@@ -341,6 +341,15 @@ class TestSQLClientEdgeCases(unittest.TestCase):
         self.temp_db = tempfile.NamedTemporaryFile(delete=False, suffix='.db')
         self.temp_db.close()
         self.client = SQLClient(self.temp_db.name)
+        self.client.execute('''
+            CREATE TABLE IF NOT EXISTS test_users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username VARCHAR(50) UNIQUE NOT NULL,
+                email VARCHAR(100) UNIQUE NOT NULL,
+                age INTEGER,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
     
     def tearDown(self):
         """Clean up test database"""

@@ -12,8 +12,7 @@ from datetime import datetime, date, timedelta
 # Add the parent directory to the path to import the library
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from sqll import SQLClient, QueryBuilder
-from sqll.query_builder import select_from, JoinType
+from sqll import SQLClient, QueryBuilder, select_from, JoinType
 
 
 def window_functions_example():
@@ -173,7 +172,7 @@ def recursive_queries_example():
                 JOIN category_tree ct ON c.parent_id = ct.id
             )
             SELECT 
-                REPEAT('  ', depth) || name as tree_structure,
+                printf('%*s', depth*2, '') || name as tree_structure,
                 level,
                 depth,
                 path

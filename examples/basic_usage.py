@@ -12,8 +12,7 @@ from datetime import datetime, date
 # Add the parent directory to the path to import the library
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from sqll import SQLClient, QueryBuilder
-from sqll.query_builder import select_from, count_from, JoinType
+from sqll import SQLClient, QueryBuilder, select_from, count_from, JoinType
 
 
 def basic_crud_operations():

@@ -1,35 +1,30 @@
 """
-SQL Client Library for SQLite
-
-A simple SQL client library for Python with SQLite support.
-Provides a simple interface for database operations while maintaining
-the flexibility and power of raw SQL.
-
-Author: Nana Adjei Manu
-Version: 1.0.0
+SQLL: A very simple SQL client for python.
 """
 
 from .client import SQLClient
-from .connection import ConnectionManager
-from .query_builder import QueryBuilder
+from .query_builder import QueryBuilder, select_from, count_from, exists_in, JoinType, OrderDirection
 from .exceptions import (
-    SQLClientError,
+    SQLLError,
     ConnectionError,
     QueryError,
+    ValidationError,
     TransactionError,
-    ValidationError
+    SQLClientError
 )
-
-__version__ = "1.0.0"
-__author__ = "Nana Adjei Manu"
 
 __all__ = [
     'SQLClient',
-    'ConnectionManager',
     'QueryBuilder',
-    'SQLClientError',
+    'select_from',
+    'count_from',
+    'exists_in',
+    'JoinType',
+    'OrderDirection',
+    'SQLLError',
     'ConnectionError',
     'QueryError',
+    'ValidationError',
     'TransactionError',
-    'ValidationError'
+    'SQLClientError'
 ]
